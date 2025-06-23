@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,29 +9,79 @@ import {
   Image,
   ScrollView,
   Dimensions,
+  Animated,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-const ProfileScreen = ({ navigation }: any) => {
+const AdminProfileScreen = ({ navigation }: any) => {
+  const { logout } = useAuth();
 
-  const {logout} = useAuth()
+  // Animaciones
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+  const statsAnimations = useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+  const menuAnimations = useRef(
+    Array.from({ length: 8 }, () => new Animated.Value(0))
+  ).current;
 
-  // In a real app, this would come from user authentication context
-  const [user] = useState({
-    nickname: 'JohnDoe123',
-    email: 'john.doe@email.com',
-    memberSince: '2023',
-    avatar: 'https://via.placeholder.com/120/007bff/FFFFFF?text=JD',
+  // Admin user data
+  const [admin] = useState({
+    name: 'Admin User',
+    email: 'admin@ecommerce.com',
+    role: 'Store Administrator',
+    adminSince: '2022',
+    avatar: 'https://via.placeholder.com/120/8b5cf6/FFFFFF?text=AD',
   });
 
-  // Handle logout functionality
+  useEffect(() => {
+    // Animación inicial
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    // Animaciones escalonadas para stats
+    const statsDelays = [200, 300, 400];
+    statsAnimations.forEach((anim, index) => {
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 600,
+        delay: statsDelays[index],
+        useNativeDriver: true,
+      }).start();
+    });
+
+    // Animaciones escalonadas para menu items
+    menuAnimations.forEach((anim, index) => {
+      Animated.timing(anim, {
+        toValue: 1,
+        duration: 500,
+        delay: 500 + index * 100,
+        useNativeDriver: true,
+      }).start();
+    });
+  }, []);
+
   const handleLogout = () => {
     Alert.alert(
       'Sign Out',
-      'Are you sure you want to sign out of your account?',
+      'Are you sure you want to sign out of your admin account?',
       [
         {
           text: 'Cancel',
@@ -41,181 +91,265 @@ const ProfileScreen = ({ navigation }: any) => {
           text: 'Sign Out',
           style: 'destructive',
           onPress: () => {
-            logout()
+            logout();
           },
         },
       ]
     );
   };
 
-  // Profile menu items - these would typically navigate to different screens
-  const profileMenuItems = [
+  // Admin menu items
+  const adminMenuItems = [
     {
       id: 1,
-      title: 'Order History',
-      icon: 'receipt-outline',
-      description: 'View your past orders',
-      onPress: () => Alert.alert('Feature', 'Order History screen would open here'),
+      title: 'Product Management',
+      icon: 'cube-outline',
+      description: 'Add, edit, and manage products',
+      color: '#8b5cf6',
+      onPress: () => Alert.alert('Feature', 'Product Management screen would open here'),
     },
     {
       id: 2,
-      title: 'Account Settings',
-      icon: 'settings-outline',
-      description: 'Manage your account preferences',
-      onPress: () => Alert.alert('Feature', 'Account Settings screen would open here'),
+      title: 'Order Management',
+      icon: 'receipt-outline',
+      description: 'View and process customer orders',
+      color: '#3b82f6',
+      onPress: () => Alert.alert('Feature', 'Order Management screen would open here'),
     },
     {
       id: 3,
-      title: 'Payment Methods',
-      icon: 'card-outline',
-      description: 'Manage your payment options',
-      onPress: () => Alert.alert('Feature', 'Payment Methods screen would open here'),
+      title: 'Customer Management',
+      icon: 'people-outline',
+      description: 'Manage customer accounts',
+      color: '#10b981',
+      onPress: () => Alert.alert('Feature', 'Customer Management screen would open here'),
     },
     {
       id: 4,
-      title: 'Shipping Addresses',
-      icon: 'location-outline',
-      description: 'Manage your delivery addresses',
-      onPress: () => Alert.alert('Feature', 'Shipping Addresses screen would open here'),
+      title: 'Analytics & Reports',
+      icon: 'analytics-outline',
+      description: 'View sales analytics and reports',
+      color: '#f59e0b',
+      onPress: () => Alert.alert('Feature', 'Analytics & Reports screen would open here'),
     },
     {
       id: 5,
-      title: 'Notifications',
-      icon: 'notifications-outline',
-      description: 'Customize your notification preferences',
-      onPress: () => Alert.alert('Feature', 'Notification Settings screen would open here'),
+      title: 'Inventory Management',
+      icon: 'library-outline',
+      description: 'Track and manage inventory',
+      color: '#ef4444',
+      onPress: () => Alert.alert('Feature', 'Inventory Management screen would open here'),
     },
     {
       id: 6,
-      title: 'Help & Support',
+      title: 'Store Settings',
+      icon: 'settings-outline',
+      description: 'Configure store preferences',
+      color: '#6b7280',
+      onPress: () => Alert.alert('Feature', 'Store Settings screen would open here'),
+    },
+    {
+      id: 7,
+      title: 'Promotions & Discounts',
+      icon: 'pricetag-outline',
+      description: 'Manage coupons and promotions',
+      color: '#ec4899',
+      onPress: () => Alert.alert('Feature', 'Promotions & Discounts screen would open here'),
+    },
+    {
+      id: 8,
+      title: 'Admin Support',
       icon: 'help-circle-outline',
-      description: 'Get help or contact support',
-      onPress: () => Alert.alert('Feature', 'Help & Support screen would open here'),
+      description: 'Get admin help and documentation',
+      color: '#14b8a6',
+      onPress: () => Alert.alert('Feature', 'Admin Support screen would open here'),
     },
   ];
 
-  // Render individual menu item
-  const renderMenuItem = (item: any) => (
-    <TouchableOpacity
+  const renderMenuItem = (item: any, index: number) => (
+    <Animated.View
       key={item.id}
-      style={styles.menuItem}
-      onPress={item.onPress}
-      activeOpacity={0.7}
+      style={[
+        {
+          opacity: menuAnimations[index],
+          transform: [
+            {
+              translateY: menuAnimations[index].interpolate({
+                inputRange: [0, 1],
+                outputRange: [20, 0],
+              }),
+            },
+          ],
+        },
+      ]}
     >
-      <View style={styles.menuItemLeft}>
-        <View style={styles.menuItemIconContainer}>
-          <Ionicons name={item.icon} size={22} color="#007bff" />
+      <TouchableOpacity
+        style={styles.menuItem}
+        onPress={item.onPress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.menuItemLeft}>
+          <LinearGradient
+            colors={[item.color + '20', item.color + '10']}
+            style={styles.menuItemIconContainer}
+          >
+            <Ionicons name={item.icon} size={22} color={item.color} />
+          </LinearGradient>
+          <View style={styles.menuItemText}>
+            <Text style={styles.menuItemTitle}>{item.title}</Text>
+            <Text style={styles.menuItemDescription}>{item.description}</Text>
+          </View>
         </View>
-        <View style={styles.menuItemText}>
-          <Text style={styles.menuItemTitle}>{item.title}</Text>
-          <Text style={styles.menuItemDescription}>{item.description}</Text>
-        </View>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color="#adb5bd" />
-    </TouchableOpacity>
+        <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+      </TouchableOpacity>
+    </Animated.View>
+  );
+
+  const StatItem = ({ number, label, animationValue }: any) => (
+    <Animated.View
+      style={[
+        styles.statItem,
+        {
+          opacity: animationValue,
+          transform: [
+            {
+              scale: animationValue.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0.8, 1],
+              }),
+            },
+          ],
+        },
+      ]}
+    >
+      <Text style={styles.statNumber}>{number}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </Animated.View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
-      </View>
+    <LinearGradient colors={['#f3e8ff', '#e9d5ff', '#ddd6fe']} style={styles.container}>
+      <SafeAreaView style={styles.container}>
+        {/* Header */}
+        <Animated.View
+          style={[
+            styles.header,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }],
+            },
+          ]}
+        >
+          <LinearGradient colors={['#ffffff', '#faf5ff']} style={styles.headerGradient}>
+            <Text style={styles.headerTitle}>Admin Profile</Text>
+          </LinearGradient>
+        </Animated.View>
 
-      <ScrollView 
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* User Info Section */}
-        <View style={styles.userSection}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={{ uri: user.avatar }}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
-            <TouchableOpacity 
-              style={styles.editAvatarButton}
-              onPress={() => Alert.alert('Feature', 'Avatar editing would be available here')}
-            >
-              <Ionicons name="camera" size={16} color="#fff" />
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Admin Info Section */}
+          <Animated.View
+            style={[
+              styles.userSection,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.userSectionGradient}>
+              <View style={styles.avatarContainer}>
+                <Image source={{ uri: admin.avatar }} style={styles.avatar} resizeMode="cover" />
+                <TouchableOpacity
+                  style={styles.editAvatarButton}
+                  onPress={() => Alert.alert('Feature', 'Avatar editing would be available here')}
+                >
+                  <LinearGradient colors={['#8b5cf6', '#a855f7']} style={styles.editAvatarGradient}>
+                    <Ionicons name="camera" size={16} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.userInfo}>
+                <Text style={styles.adminName}>{admin.name}</Text>
+                <Text style={styles.adminRole}>{admin.role}</Text>
+                <Text style={styles.email}>{admin.email}</Text>
+                <Text style={styles.memberSince}>Admin since {admin.adminSince}</Text>
+              </View>
+            </LinearGradient>
+          </Animated.View>
+
+          {/* Admin Stats Section */}
+          <View style={styles.statsSection}>
+            <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.statsSectionGradient}>
+              <StatItem number="1,247" label="Total Products" animationValue={statsAnimations[0]} />
+              <View style={styles.statDivider} />
+              <StatItem number="$45,280" label="Monthly Sales" animationValue={statsAnimations[1]} />
+              <View style={styles.statDivider} />
+              <StatItem number="892" label="Active Users" animationValue={statsAnimations[2]} />
+            </LinearGradient>
+          </View>
+
+          {/* Admin Menu Items Section */}
+          <View style={styles.menuSection}>
+            <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.menuSectionGradient}>
+              {adminMenuItems.map((item, index) => renderMenuItem(item, index))}
+            </LinearGradient>
+          </View>
+
+          {/* Logout Button */}
+          <View style={styles.logoutSection}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} activeOpacity={0.8}>
+              <LinearGradient colors={['#fef2f2', '#fee2e2']} style={styles.logoutButtonGradient}>
+                <Ionicons name="log-out-outline" size={20} color="#dc2626" />
+                <Text style={styles.logoutText}>Sign Out</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
-          
-          <View style={styles.userInfo}>
-            <Text style={styles.nickname}>{user.nickname}</Text>
-            <Text style={styles.email}>{user.email}</Text>
-            <Text style={styles.memberSince}>
-              Member since {user.memberSince}
-            </Text>
-          </View>
-        </View>
-
-        {/* Stats Section */}
-        <View style={styles.statsSection}>
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>24</Text>
-            <Text style={styles.statLabel}>Orders</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>$1,247</Text>
-            <Text style={styles.statLabel}>Total Spent</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>4.8</Text>
-            <Text style={styles.statLabel}>Rating</Text>
-          </View>
-        </View>
-
-        {/* Menu Items Section */}
-        <View style={styles.menuSection}>
-          {profileMenuItems.map(renderMenuItem)}
-        </View>
-
-        {/* Logout Button */}
-        <View style={styles.logoutSection}>
-          <TouchableOpacity
-            style={styles.logoutButton}
-            onPress={handleLogout}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#dc3545" />
-            <Text style={styles.logoutText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerGradient: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: '#e5e7eb',
   },
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#212529',
+    color: '#111827',
   },
   scrollView: {
     flex: 1,
   },
   userSection: {
-    backgroundColor: '#fff',
+    margin: 16,
+    borderRadius: 20,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  userSectionGradient: {
     paddingVertical: 30,
     paddingHorizontal: 20,
     alignItems: 'center',
-    marginBottom: 10,
+    borderRadius: 20,
   },
   avatarContainer: {
     position: 'relative',
@@ -225,44 +359,65 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f3f4f6',
+    borderWidth: 3,
+    borderColor: '#8b5cf6',
   },
   editAvatarButton: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#007bff',
     width: 32,
     height: 32,
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 3,
     borderColor: '#fff',
+    overflow: 'hidden',
+  },
+  editAvatarGradient: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   userInfo: {
     alignItems: 'center',
   },
-  nickname: {
+  adminName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#212529',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  adminRole: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8b5cf6',
     marginBottom: 4,
   },
   email: {
     fontSize: 16,
-    color: '#6c757d',
+    color: '#6b7280',
     marginBottom: 2,
   },
   memberSince: {
     fontSize: 14,
-    color: '#adb5bd',
+    color: '#9ca3af',
   },
   statsSection: {
-    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  statsSectionGradient: {
     flexDirection: 'row',
     paddingVertical: 20,
-    marginBottom: 10,
+    borderRadius: 16,
   },
   statItem: {
     flex: 1,
@@ -271,21 +426,32 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#212529',
+    color: '#111827',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 14,
-    color: '#6c757d',
+    color: '#6b7280',
+    fontWeight: '500',
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#e9ecef',
+    backgroundColor: '#e5e7eb',
     marginVertical: 10,
   },
   menuSection: {
-    backgroundColor: '#fff',
-    marginBottom: 10,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 16,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  menuSectionGradient: {
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   menuItem: {
     flexDirection: 'row',
@@ -294,7 +460,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f8f9fa',
+    borderBottomColor: '#f9fafb',
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -302,10 +468,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuItemIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#e7f3ff',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -316,50 +481,40 @@ const styles = StyleSheet.create({
   menuItemTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#212529',
+    color: '#111827',
     marginBottom: 2,
   },
   menuItemDescription: {
     fontSize: 14,
-    color: '#6c757d',
+    color: '#6b7280',
   },
   logoutSection: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    marginBottom: 10,
+    marginHorizontal: 16,
+    marginBottom: 20,
   },
   logoutButton: {
+    borderRadius: 12,
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  logoutButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#fff5f5',
     borderWidth: 1,
     borderColor: '#fecaca',
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 12,
   },
   logoutText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#dc3545',
+    color: '#dc2626',
     marginLeft: 8,
-  },
-  appInfoSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    alignItems: 'center',
-  },
-  appVersion: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginBottom: 4,
-  },
-  appInfo: {
-    fontSize: 12,
-    color: '#adb5bd',
-    textAlign: 'center',
   },
 });
 
-export default ProfileScreen;
+export default AdminProfileScreen;
