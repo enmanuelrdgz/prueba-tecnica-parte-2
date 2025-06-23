@@ -12,8 +12,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
-
 const DashboardScreen = () => {
   const [animatedStats, setAnimatedStats] = useState({
     totalSales: 0,
@@ -21,24 +19,6 @@ const DashboardScreen = () => {
     totalProducts: 0,
     totalCustomers: 0,
   });
-
-  // Animaciones optimizadas - solo las esenciales
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const statsAnimations = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]).current;
-  const quickStatsAnimations = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]).current;
-  const sectionsAnimations = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]).current;
 
   // Mock statistics data
   const stats = {
@@ -66,73 +46,6 @@ const DashboardScreen = () => {
     { name: 'Laptop Stand', sales: 98, revenue: 4900 },
   ];
 
-  useEffect(() => {
-    // Animación simple del header - solo fade-in
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 400,
-      useNativeDriver: true,
-    }).start();
-
-    // Animaciones escalonadas para las tarjetas de estadísticas
-    const statsDelays = [0, 100, 200, 300];
-    statsAnimations.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 600,
-        delay: statsDelays[index],
-        useNativeDriver: true,
-      }).start();
-    });
-
-    // Animaciones para quick stats
-    const quickStatsDelays = [400, 500, 600];
-    quickStatsAnimations.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 600,
-        delay: quickStatsDelays[index],
-        useNativeDriver: true,
-      }).start();
-    });
-
-    // Animaciones para secciones
-    const sectionsDelays = [700, 800];
-    sectionsAnimations.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 600,
-        delay: sectionsDelays[index],
-        useNativeDriver: true,
-      }).start();
-    });
-
-    // Animación de números contadores
-    const duration = 2000;
-    const steps = 60;
-    const stepDuration = duration / steps;
-
-    let currentStep = 0;
-    const timer = setInterval(() => {
-      currentStep++;
-      const progress = currentStep / steps;
-
-      setAnimatedStats({
-        totalSales: Math.floor(stats.totalSales * progress),
-        totalOrders: Math.floor(stats.totalOrders * progress),
-        totalProducts: Math.floor(stats.totalProducts * progress),
-        totalCustomers: Math.floor(stats.totalCustomers * progress),
-      });
-
-      if (currentStep >= steps) {
-        clearInterval(timer);
-        setAnimatedStats(stats);
-      }
-    }, stepDuration);
-
-    return () => clearInterval(timer);
-  }, []);
-
   const formatPrice = (price: number) => {
     return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   };
@@ -152,28 +65,11 @@ const DashboardScreen = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon, color, subtitle, animationValue, index }: any) => (
-    <Animated.View
+  const StatCard = ({ title, value, icon, color, subtitle }: any) => (
+    <View
       style={[
         styles.statCard,
         { borderLeftColor: color },
-        {
-          opacity: animationValue,
-          transform: [
-            {
-              translateY: animationValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [20, 0],
-              }),
-            },
-            {
-              scale: animationValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.9, 1],
-              }),
-            },
-          ],
-        },
       ]}
     >
       <View style={styles.statCardContent}>
@@ -189,24 +85,14 @@ const DashboardScreen = () => {
           <Ionicons name={icon} size={24} color={color} />
         </LinearGradient>
       </View>
-    </Animated.View>
+    </View>
   );
 
-  const QuickStatItem = ({ icon, number, label, color, animationValue }: any) => (
-    <Animated.View
+  const QuickStatItem = ({ icon, number, label, color  }: any) => (
+    <View
       style={[
         styles.quickStatItem,
-        {
-          opacity: animationValue,
-          transform: [
-            {
-              translateY: animationValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [15, 0],
-              }),
-            },
-          ],
-        },
+       
       ]}
     >
       <LinearGradient
@@ -217,29 +103,23 @@ const DashboardScreen = () => {
       </LinearGradient>
       <Text style={styles.quickStatNumber}>{number}</Text>
       <Text style={styles.quickStatLabel}>{label}</Text>
-    </Animated.View>
+    </View>
   );
 
   return (
-    <LinearGradient
-      colors={['#f3e8ff', '#e9d5ff', '#ddd6fe']}
-      style={styles.container}
-    >
       <SafeAreaView style={styles.container}>
         {/* Header optimizado - sin slide animation */}
-        <Animated.View
+        <View
           style={[
             styles.header,
-            {
-              opacity: fadeAnim,
-            },
+         
           ]}
         >
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>Dashboard</Text>
             <Text style={styles.headerSubtitle}>Welcome back, Admin</Text>
           </View>
-        </Animated.View>
+        </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Main Stats Grid */}
@@ -250,7 +130,6 @@ const DashboardScreen = () => {
               icon="trending-up"
               color="#8b5cf6"
               subtitle={`+${stats.monthlyGrowth}% this month`}
-              animationValue={statsAnimations[0]}
               index={0}
             />
             <StatCard
@@ -258,7 +137,6 @@ const DashboardScreen = () => {
               value={animatedStats.totalOrders.toLocaleString()}
               icon="receipt"
               color="#3b82f6"
-              animationValue={statsAnimations[1]}
               index={1}
             />
             <StatCard
@@ -266,7 +144,6 @@ const DashboardScreen = () => {
               value={animatedStats.totalProducts}
               icon="cube"
               color="#a855f7"
-              animationValue={statsAnimations[2]}
               index={2}
             />
             <StatCard
@@ -274,7 +151,6 @@ const DashboardScreen = () => {
               value={animatedStats.totalCustomers.toLocaleString()}
               icon="people"
               color="#f97316"
-              animationValue={statsAnimations[3]}
               index={3}
             />
           </View>
@@ -286,21 +162,18 @@ const DashboardScreen = () => {
               number={stats.pendingOrders}
               label="Pending Orders"
               color="#f59e0b"
-              animationValue={quickStatsAnimations[0]}
             />
             <QuickStatItem
               icon="warning"
               number={stats.lowStockItems}
               label="Low Stock"
               color="#ef4444"
-              animationValue={quickStatsAnimations[1]}
             />
             <QuickStatItem
               icon="person-add"
               number={stats.newCustomers}
               label="New Customers"
               color="#10b981"
-              animationValue={quickStatsAnimations[2]}
             />
           </View>
 
@@ -308,17 +181,7 @@ const DashboardScreen = () => {
           <Animated.View
             style={[
               styles.section,
-              {
-                opacity: sectionsAnimations[0],
-                transform: [
-                  {
-                    translateY: sectionsAnimations[0].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
-              },
+             
             ]}
           >
             <View style={styles.sectionContainer}>
@@ -366,17 +229,7 @@ const DashboardScreen = () => {
           <Animated.View
             style={[
               styles.section,
-              {
-                opacity: sectionsAnimations[1],
-                transform: [
-                  {
-                    translateY: sectionsAnimations[1].interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [20, 0],
-                    }),
-                  },
-                ],
-              },
+             
             ]}
           >
             <View style={styles.sectionContainer}>
@@ -411,7 +264,6 @@ const DashboardScreen = () => {
           </Animated.View>
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
   );
 };
 
