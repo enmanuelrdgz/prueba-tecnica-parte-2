@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '@/contexts/AuthContext';
 
 const { width } = Dimensions.get('window');
 
@@ -23,6 +24,8 @@ const LoginScreen = ({navigation}: any) => {
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  const {login} = useAuth();
 
   // Animaciones
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -60,17 +63,14 @@ const LoginScreen = ({navigation}: any) => {
     setIsLoading(true);
     buttonPressAnimation();
 
-    // Simular llamada a API
-    setTimeout(() => {
-      if (username !== 'admin' || password !== 'password') {
-        setErrorMessage('Usuario o contraseña incorrectos');
-        shakeAnimation();
-        setIsLoading(false);
-      } else {
-        console.log('Login exitoso');
-        setIsLoading(false);
-      }
-    }, 2000);
+    let success = await login(username, password);
+    if (success) {
+      // Login exitoso
+    } else {
+      setErrorMessage('Usuario o contraseña incorrectos');
+      shakeAnimation();
+      setIsLoading(false);
+    }
   };
 
   const handleGoToRegister = () => {
