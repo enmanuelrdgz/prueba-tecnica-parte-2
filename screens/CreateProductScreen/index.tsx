@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,20 +26,7 @@ const CreateProductScreen = () => {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [focusedInput, setFocusedInput] = useState<string | null>(null);
-
-  // Animaciones
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const buttonScaleAnim = useRef(new Animated.Value(1)).current;
-  const inputAnimations = useRef({
-    name: new Animated.Value(1),
-    description: new Animated.Value(1),
-    price: new Animated.Value(1),
-    stock: new Animated.Value(1),
-    sku: new Animated.Value(1),
-    imageUrl: new Animated.Value(1),
-  }).current;
+  const [focusedInput, setFocusedInput] = useState(null);
 
   const categories = [
     'Electronics',
@@ -53,62 +39,19 @@ const CreateProductScreen = () => {
     'Automotive',
   ];
 
-  useEffect(() => {
-    // Animación inicial
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
-
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
   };
 
-  const handleInputFocus = (inputName: string) => {
+  const handleInputFocus = (inputName) => {
     setFocusedInput(inputName);
-    if (inputAnimations[inputName]) {
-      Animated.spring(inputAnimations[inputName], {
-        toValue: 1.02,
-        useNativeDriver: true,
-      }).start();
-    }
   };
 
-  const handleInputBlur = (inputName: string) => {
+  const handleInputBlur = () => {
     setFocusedInput(null);
-    if (inputAnimations[inputName]) {
-      Animated.spring(inputAnimations[inputName], {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
-  const buttonPressAnimation = () => {
-    Animated.sequence([
-      Animated.timing(buttonScaleAnim, {
-        toValue: 0.95,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-      Animated.timing(buttonScaleAnim, {
-        toValue: 1,
-        duration: 100,
-        useNativeDriver: true,
-      }),
-    ]).start();
   };
 
   const validateForm = () => {
@@ -146,7 +89,6 @@ const CreateProductScreen = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    buttonPressAnimation();
 
     // Simulate API call delay
     setTimeout(() => {
@@ -175,26 +117,16 @@ const CreateProductScreen = () => {
     }, 1500);
   };
 
-  const renderAnimatedInput = (
-    field: string,
-    label: string,
-    placeholder: string,
-    options: any = {}
+  const renderInput = (
+    field,
+    label,
+    placeholder,
+    options = {}
   ) => {
-    const animationValue = inputAnimations[field] || new Animated.Value(1);
-    
     return (
       <View style={styles.inputContainer}>
         <Text style={styles.inputLabel}>{label}</Text>
-        <Animated.View
-          style={[
-            styles.inputWrapper,
-            {
-              transform: [{ scale: animationValue }],
-              shadowOpacity: focusedInput === field ? 0.3 : 0.1,
-            },
-          ]}
-        >
+        <View style={styles.inputWrapper}>
           <TextInput
             style={[
               styles.input,
@@ -209,10 +141,10 @@ const CreateProductScreen = () => {
             value={formData[field]}
             onChangeText={(text) => handleInputChange(field, text)}
             onFocus={() => handleInputFocus(field)}
-            onBlur={() => handleInputBlur(field)}
+            onBlur={() => handleInputBlur()}
             {...options}
           />
-        </Animated.View>
+        </View>
       </View>
     );
   };
@@ -245,159 +177,125 @@ const CreateProductScreen = () => {
   );
 
   return (
-    <LinearGradient colors={['#f3e8ff', '#e9d5ff', '#ddd6fe']} style={styles.container}>
-      <SafeAreaView style={styles.container}>
-        {/* Header */}
-        <Animated.View
-          style={[
-            styles.header,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
-          <LinearGradient colors={['#ffffff', '#faf5ff']} style={styles.headerGradient}>
-            <Text style={styles.headerTitle}>Create Product</Text>
-            <Text style={styles.headerSubtitle}>Add a new product to your inventory</Text>
-          </LinearGradient>
-        </Animated.View>
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <LinearGradient colors={['#ffffff', '#faf5ff']} style={styles.headerGradient}>
+          <Text style={styles.headerTitle}>Create Product</Text>
+          <Text style={styles.headerSubtitle}>Add a new product to your inventory</Text>
+        </LinearGradient>
+      </View>
 
-        <KeyboardAvoidingView style={styles.keyboardAvoid} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-            <Animated.View
-              style={[
-                styles.form,
-                {
-                  opacity: fadeAnim,
-                  transform: [{ translateY: slideAnim }],
-                },
-              ]}
-            >
-              <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.formGradient}>
-                {/* Product Name */}
-                {renderAnimatedInput('name', 'Product Name *', 'Enter product name', {
-                  autoCapitalize: 'words',
-                })}
+      <KeyboardAvoidingView style={styles.keyboardAvoid} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+          <View style={styles.form}>
+            <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.formGradient}>
+              {/* Product Name */}
+              {renderInput('name', 'Product Name *', 'Enter product name', {
+                autoCapitalize: 'words',
+              })}
 
-                {/* Product Description */}
-                {renderAnimatedInput('description', 'Description *', 'Enter product description', {
-                  multiline: true,
-                  numberOfLines: 4,
-                  textAlignVertical: 'top',
-                })}
+              {/* Product Description */}
+              {renderInput('description', 'Description *', 'Enter product description', {
+                multiline: true,
+                numberOfLines: 4,
+                textAlignVertical: 'top',
+              })}
 
-                {/* Price and Stock Row */}
-                <View style={styles.row}>
-                  <View style={[styles.inputContainer, styles.halfWidth]}>
-                    <Text style={styles.inputLabel}>Price *</Text>
-                    <Animated.View
+              {/* Price and Stock Row */}
+              <View style={styles.row}>
+                <View style={[styles.inputContainer, styles.halfWidth]}>
+                  <Text style={styles.inputLabel}>Price *</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
                       style={[
-                        styles.inputWrapper,
+                        styles.input,
                         {
-                          transform: [{ scale: inputAnimations.price }],
-                          shadowOpacity: focusedInput === 'price' ? 0.3 : 0.1,
+                          borderColor: focusedInput === 'price' ? '#8b5cf6' : '#e5e7eb',
+                          borderWidth: focusedInput === 'price' ? 2 : 1,
                         },
                       ]}
-                    >
-                      <TextInput
-                        style={[
-                          styles.input,
-                          {
-                            borderColor: focusedInput === 'price' ? '#8b5cf6' : '#e5e7eb',
-                            borderWidth: focusedInput === 'price' ? 2 : 1,
-                          },
-                        ]}
-                        placeholder="0.00"
-                        placeholderTextColor="#9ca3af"
-                        value={formData.price}
-                        onChangeText={(text) => handleInputChange('price', text)}
-                        onFocus={() => handleInputFocus('price')}
-                        onBlur={() => handleInputBlur('price')}
-                        keyboardType="decimal-pad"
-                      />
-                    </Animated.View>
-                  </View>
-
-                  <View style={[styles.inputContainer, styles.halfWidth]}>
-                    <Text style={styles.inputLabel}>Stock Quantity *</Text>
-                    <Animated.View
-                      style={[
-                        styles.inputWrapper,
-                        {
-                          transform: [{ scale: inputAnimations.stock }],
-                          shadowOpacity: focusedInput === 'stock' ? 0.3 : 0.1,
-                        },
-                      ]}
-                    >
-                      <TextInput
-                        style={[
-                          styles.input,
-                          {
-                            borderColor: focusedInput === 'stock' ? '#8b5cf6' : '#e5e7eb',
-                            borderWidth: focusedInput === 'stock' ? 2 : 1,
-                          },
-                        ]}
-                        placeholder="0"
-                        placeholderTextColor="#9ca3af"
-                        value={formData.stock}
-                        onChangeText={(text) => handleInputChange('stock', text)}
-                        onFocus={() => handleInputFocus('stock')}
-                        onBlur={() => handleInputBlur('stock')}
-                        keyboardType="number-pad"
-                      />
-                    </Animated.View>
+                      placeholder="0.00"
+                      placeholderTextColor="#9ca3af"
+                      value={formData.price}
+                      onChangeText={(text) => handleInputChange('price', text)}
+                      onFocus={() => handleInputFocus('price')}
+                      onBlur={() => handleInputBlur()}
+                      keyboardType="decimal-pad"
+                    />
                   </View>
                 </View>
 
-                {/* Category Selector */}
-                <CategorySelector />
+                <View style={[styles.inputContainer, styles.halfWidth]}>
+                  <Text style={styles.inputLabel}>Stock Quantity *</Text>
+                  <View style={styles.inputWrapper}>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        {
+                          borderColor: focusedInput === 'stock' ? '#8b5cf6' : '#e5e7eb',
+                          borderWidth: focusedInput === 'stock' ? 2 : 1,
+                        },
+                      ]}
+                      placeholder="0"
+                      placeholderTextColor="#9ca3af"
+                      value={formData.stock}
+                      onChangeText={(text) => handleInputChange('stock', text)}
+                      onFocus={() => handleInputFocus('stock')}
+                      onBlur={() => handleInputBlur()}
+                      keyboardType="number-pad"
+                    />
+                  </View>
+                </View>
+              </View>
 
-                {/* SKU */}
-                {renderAnimatedInput('sku', 'SKU (Optional)', 'Enter product SKU', {
-                  autoCapitalize: 'characters',
-                })}
+              {/* Category Selector */}
+              <CategorySelector />
+              
+              {/* SKU */}
+              {renderInput('sku', 'SKU (Optional)', 'Enter product SKU', {
+                autoCapitalize: 'characters',
+              })}
 
-                {/* Image URL */}
-                {renderAnimatedInput('imageUrl', 'Image URL (Optional)', 'https://example.com/image.jpg', {
-                  keyboardType: 'url',
-                  autoCapitalize: 'none',
-                })}
+              {/* Image URL */}
+              {renderInput('imageUrl', 'Image URL (Optional)', 'https://example.com/image.jpg', {
+                keyboardType: 'url',
+                autoCapitalize: 'none',
+              })}
 
-                {/* Submit Button */}
-                <Animated.View style={{ transform: [{ scale: buttonScaleAnim }] }}>
-                  <TouchableOpacity
-                    style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
-                    onPress={handleSubmit}
-                    disabled={isSubmitting}
-                    activeOpacity={0.8}
+              {/* Submit Button */}
+              <View>
+                <TouchableOpacity
+                  style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+                  onPress={handleSubmit}
+                  disabled={isSubmitting}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={isSubmitting ? ['#9ca3af', '#6b7280'] : ['#8b5cf6', '#a855f7', '#9333ea']}
+                    style={styles.submitButtonGradient}
                   >
-                    <LinearGradient
-                      colors={isSubmitting ? ['#9ca3af', '#6b7280'] : ['#8b5cf6', '#a855f7', '#9333ea']}
-                      style={styles.submitButtonGradient}
-                    >
-                      <View style={styles.submitButtonContent}>
-                        {isSubmitting ? (
-                          <>
-                            <Ionicons name="hourglass" size={20} color="#fff" />
-                            <Text style={styles.submitButtonText}>Creating Product...</Text>
-                          </>
-                        ) : (
-                          <>
-                            <Ionicons name="add-circle" size={20} color="#fff" />
-                            <Text style={styles.submitButtonText}>Create Product</Text>
-                          </>
-                        )}
-                      </View>
-                    </LinearGradient>
-                  </TouchableOpacity>
-                </Animated.View>
-              </LinearGradient>
-            </Animated.View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </LinearGradient>
+                    <View style={styles.submitButtonContent}>
+                      {isSubmitting ? (
+                        <>
+                          <Ionicons name="hourglass" size={20} color="#fff" />
+                          <Text style={styles.submitButtonText}>Creating Product...</Text>
+                        </>
+                      ) : (
+                        <>
+                          <Ionicons name="add-circle" size={20} color="#fff" />
+                          <Text style={styles.submitButtonText}>Create Product</Text>
+                        </>
+                      )}
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
