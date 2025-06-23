@@ -9,9 +9,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { styles } from './styles';
 
 const CreateProductScreen = () => {
@@ -23,6 +25,7 @@ const CreateProductScreen = () => {
     stock: '',
     sku: '',
     imageUrl: '',
+    imageUri: '', // Nueva propiedad para la imagen local
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -52,6 +55,99 @@ const CreateProductScreen = () => {
 
   const handleInputBlur = () => {
     setFocusedInput(null);
+  };
+
+  // Función para solicitar permisos y abrir la galería/cámara
+  const pickImage = async () => {
+    // Solicitar permisos
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permisos requeridos',
+        'Necesitamos permisos para acceder a tu galería de fotos.'
+      );
+      return;
+    }
+
+    // Mostrar opciones al usuario
+    Alert.alert(
+      'Seleccionar imagen',
+      'Elige una opción',
+      [
+        {
+          text: 'Cámara',
+          onPress: () => openCamera(),
+        },
+        {
+          text: 'Galería',
+          onPress: () => openGallery(),
+        },
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+      ]
+    );
+  };
+
+  const openCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert(
+        'Permisos requeridos',
+        'Necesitamos permisos para acceder a tu cámara.'
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      handleInputChange('imageUri', result.assets[0].uri);
+      handleInputChange('imageUrl', ''); // Limpiar URL si se selecciona imagen local
+    }
+  };
+
+  const openGallery = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      handleInputChange('imageUri', result.assets[0].uri);
+      handleInputChange('imageUrl', ''); // Limpiar URL si se selecciona imagen local
+    }
+  };
+
+  const removeImage = () => {
+    Alert.alert(
+      'Eliminar imagen',
+      '¿Estás seguro de que quieres eliminar esta imagen?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            handleInputChange('imageUri', '');
+            handleInputChange('imageUrl', '');
+          },
+        },
+      ]
+    );
   };
 
   const validateForm = () => {
@@ -106,6 +202,7 @@ const CreateProductScreen = () => {
               stock: '',
               sku: '',
               imageUrl: '',
+              imageUri: '',
             });
           },
         },
@@ -173,6 +270,49 @@ const CreateProductScreen = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+    </View>
+  );
+
+  const ImageSelector = () => (
+    <View style={styles.inputContainer}>
+      <Text style={styles.inputLabel}>Product Image</Text>
+      
+      {/* Mostrar imagen seleccionada */}
+      {(formData.imageUri || formData.imageUrl) && (
+        <View style={styles.imagePreviewContainer}>
+          <Image
+            source={{ uri: formData.imageUri || formData.imageUrl }}
+            style={styles.imagePreview}
+            resizeMode="cover"
+          />
+          <TouchableOpacity
+            style={styles.removeImageButton}
+            onPress={removeImage}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="close-circle" size={24} color="#ef4444" />
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Botones de selección */}
+      <View style={styles.imageButtonsContainer}>
+        <TouchableOpacity
+          style={styles.imageButton}
+          onPress={pickImage}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={['#8b5cf6', '#a855f7']}
+            style={styles.imageButtonGradient}
+          >
+            <Ionicons name="camera" size={20} color="#fff" />
+            <Text style={styles.imageButtonText}>Seleccionar Imagen</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
+     
     </View>
   );
 
@@ -252,16 +392,8 @@ const CreateProductScreen = () => {
               {/* Category Selector */}
               <CategorySelector />
               
-              {/* SKU */}
-              {renderInput('sku', 'SKU (Optional)', 'Enter product SKU', {
-                autoCapitalize: 'characters',
-              })}
-
-              {/* Image URL */}
-              {renderInput('imageUrl', 'Image URL (Optional)', 'https://example.com/image.jpg', {
-                keyboardType: 'url',
-                autoCapitalize: 'none',
-              })}
+              {/* Image Selector */}
+              <ImageSelector />
 
               {/* Submit Button */}
               <View>
