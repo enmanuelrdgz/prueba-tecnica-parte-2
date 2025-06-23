@@ -1,10 +1,26 @@
-import { View, Text, ScrollView, StyleSheet, SafeAreaView, Dimensions } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
-
-const { width } = Dimensions.get("window")
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  SafeAreaView,
+  Dimensions,
+  Animated,
+  TouchableOpacity,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 const DashboardScreen = () => {
-  // Mock statistics data - no logic, just static display
+  const [animatedStats, setAnimatedStats] = useState({
+    totalSales: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+  });
+
+  // Mock statistics data
   const stats = {
     totalSales: 45280,
     totalOrders: 1247,
@@ -14,182 +30,270 @@ const DashboardScreen = () => {
     pendingOrders: 23,
     lowStockItems: 8,
     newCustomers: 34,
-  }
+  };
 
   const recentOrders = [
-    { id: "#3102", customer: "Sophia Anderson", amount: 150.0, status: "Completed" },
-    { id: "#3101", customer: "Michael Chen", amount: 89.99, status: "Processing" },
-    { id: "#3100", customer: "Emma Wilson", amount: 245.5, status: "Shipped" },
-    { id: "#3099", customer: "James Rodriguez", amount: 67.25, status: "Pending" },
-  ]
+    { id: '#3102', customer: 'Sophia Anderson', amount: 150.0, status: 'Completed' },
+    { id: '#3101', customer: 'Michael Chen', amount: 89.99, status: 'Processing' },
+    { id: '#3100', customer: 'Emma Wilson', amount: 245.5, status: 'Shipped' },
+    { id: '#3099', customer: 'James Rodriguez', amount: 67.25, status: 'Pending' },
+  ];
 
   const topProducts = [
-    { name: "Wireless Headphones", sales: 234, revenue: 20826 },
-    { name: "Smart Watch", sales: 189, revenue: 37611 },
-    { name: "Smartphone Pro", sales: 156, revenue: 46644 },
-    { name: "Laptop Stand", sales: 98, revenue: 4900 },
-  ]
+    { name: 'Wireless Headphones', sales: 234, revenue: 20826 },
+    { name: 'Smart Watch', sales: 189, revenue: 37611 },
+    { name: 'Smartphone Pro', sales: 156, revenue: 46644 },
+    { name: 'Laptop Stand', sales: 98, revenue: 4900 },
+  ];
 
   const formatPrice = (price: number) => {
-    return `$${price.toLocaleString("en-US", { minimumFractionDigits: 2 })}`
-  }
+    return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Completed":
-        return "#28a745"
-      case "Processing":
-        return "#ffc107"
-      case "Shipped":
-        return "#007bff"
-      case "Pending":
-        return "#6c757d"
+      case 'Completed':
+        return '#10b981';
+      case 'Processing':
+        return '#f59e0b';
+      case 'Shipped':
+        return '#3b82f6';
+      case 'Pending':
+        return '#6b7280';
       default:
-        return "#6c757d"
+        return '#6b7280';
     }
-  }
+  };
 
   const StatCard = ({ title, value, icon, color, subtitle }: any) => (
-    <View style={[styles.statCard, { borderLeftColor: color }]}>
+    <View
+      style={[
+        styles.statCard,
+        { borderLeftColor: color },
+      ]}
+    >
       <View style={styles.statCardContent}>
         <View style={styles.statCardLeft}>
           <Text style={styles.statCardTitle}>{title}</Text>
           <Text style={styles.statCardValue}>{value}</Text>
           {subtitle && <Text style={styles.statCardSubtitle}>{subtitle}</Text>}
         </View>
-        <View style={[styles.statCardIcon, { backgroundColor: color + "20" }]}>
+        <LinearGradient
+          colors={[color + '20', color + '10']}
+          style={styles.statCardIcon}
+        >
           <Ionicons name={icon} size={24} color={color} />
-        </View>
+        </LinearGradient>
       </View>
     </View>
-  )
+  );
+
+  const QuickStatItem = ({ icon, number, label, color  }: any) => (
+    <View
+      style={[
+        styles.quickStatItem,
+       
+      ]}
+    >
+      <LinearGradient
+        colors={[color + '15', color + '05']}
+        style={styles.quickStatIcon}
+      >
+        <Ionicons name={icon} size={20} color={color} />
+      </LinearGradient>
+      <Text style={styles.quickStatNumber}>{number}</Text>
+      <Text style={styles.quickStatLabel}>{label}</Text>
+    </View>
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Dashboard</Text>
-        <Text style={styles.headerSubtitle}>Welcome back, Admin</Text>
-      </View>
-
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Main Stats Grid */}
-        <View style={styles.statsGrid}>
-          <StatCard
-            title="Total Sales"
-            value={formatPrice(stats.totalSales)}
-            icon="trending-up"
-            color="#28a745"
-            subtitle={`+${stats.monthlyGrowth}% this month`}
-          />
-          <StatCard title="Total Orders" value={stats.totalOrders.toLocaleString()} icon="receipt" color="#007bff" />
-          <StatCard title="Products" value={stats.totalProducts} icon="cube" color="#6f42c1" />
-          <StatCard title="Customers" value={stats.totalCustomers.toLocaleString()} icon="people" color="#fd7e14" />
-        </View>
-
-        {/* Quick Stats Row */}
-        <View style={styles.quickStatsRow}>
-          <View style={styles.quickStatItem}>
-            <View style={styles.quickStatIcon}>
-              <Ionicons name="time" size={20} color="#ffc107" />
-            </View>
-            <Text style={styles.quickStatNumber}>{stats.pendingOrders}</Text>
-            <Text style={styles.quickStatLabel}>Pending Orders</Text>
-          </View>
-
-          <View style={styles.quickStatItem}>
-            <View style={styles.quickStatIcon}>
-              <Ionicons name="warning" size={20} color="#dc3545" />
-            </View>
-            <Text style={styles.quickStatNumber}>{stats.lowStockItems}</Text>
-            <Text style={styles.quickStatLabel}>Low Stock</Text>
-          </View>
-
-          <View style={styles.quickStatItem}>
-            <View style={styles.quickStatIcon}>
-              <Ionicons name="person-add" size={20} color="#20c997" />
-            </View>
-            <Text style={styles.quickStatNumber}>{stats.newCustomers}</Text>
-            <Text style={styles.quickStatLabel}>New Customers</Text>
+      <SafeAreaView style={styles.container}>
+        {/* Header optimizado - sin slide animation */}
+        <View
+          style={[
+            styles.header,
+         
+          ]}
+        >
+          <View style={styles.headerContent}>
+            <Text style={styles.headerTitle}>Dashboard</Text>
+            <Text style={styles.headerSubtitle}>Welcome back, Admin</Text>
           </View>
         </View>
 
-        {/* Recent Orders Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Orders</Text>
-            <Text style={styles.sectionSubtitle}>Latest customer orders</Text>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          {/* Main Stats Grid */}
+          <View style={styles.statsGrid}>
+            <StatCard
+              title="Total Sales"
+              value={formatPrice(animatedStats.totalSales)}
+              icon="trending-up"
+              color="#8b5cf6"
+              subtitle={`+${stats.monthlyGrowth}% this month`}
+              index={0}
+            />
+            <StatCard
+              title="Total Orders"
+              value={animatedStats.totalOrders.toLocaleString()}
+              icon="receipt"
+              color="#3b82f6"
+              index={1}
+            />
+            <StatCard
+              title="Products"
+              value={animatedStats.totalProducts}
+              icon="cube"
+              color="#a855f7"
+              index={2}
+            />
+            <StatCard
+              title="Customers"
+              value={animatedStats.totalCustomers.toLocaleString()}
+              icon="people"
+              color="#f97316"
+              index={3}
+            />
           </View>
 
-          <View style={styles.ordersContainer}>
-            {recentOrders.map((order) => (
-              <View key={order.id} style={styles.orderItem}>
-                <View style={styles.orderLeft}>
-                  <Text style={styles.orderId}>{order.id}</Text>
-                  <Text style={styles.orderCustomer}>{order.customer}</Text>
-                </View>
-                <View style={styles.orderRight}>
-                  <Text style={styles.orderAmount}>{formatPrice(order.amount)}</Text>
-                  <View style={[styles.orderStatus, { backgroundColor: getStatusColor(order.status) + "20" }]}>
-                    <Text style={[styles.orderStatusText, { color: getStatusColor(order.status) }]}>
-                      {order.status}
-                    </Text>
-                  </View>
-                </View>
+          {/* Quick Stats Row */}
+          <View style={styles.quickStatsRow}>
+            <QuickStatItem
+              icon="time"
+              number={stats.pendingOrders}
+              label="Pending Orders"
+              color="#f59e0b"
+            />
+            <QuickStatItem
+              icon="warning"
+              number={stats.lowStockItems}
+              label="Low Stock"
+              color="#ef4444"
+            />
+            <QuickStatItem
+              icon="person-add"
+              number={stats.newCustomers}
+              label="New Customers"
+              color="#10b981"
+            />
+          </View>
+
+          {/* Recent Orders Section */}
+          <Animated.View
+            style={[
+              styles.section,
+             
+            ]}
+          >
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Recent Orders</Text>
+                <Text style={styles.sectionSubtitle}>Latest customer orders</Text>
               </View>
-            ))}
-          </View>
-        </View>
 
-        {/* Top Products Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Top Products</Text>
-            <Text style={styles.sectionSubtitle}>Best performing products</Text>
-          </View>
-
-          <View style={styles.productsContainer}>
-            {topProducts.map((product, index) => (
-              <View key={product.name} style={styles.productItem}>
-                <View style={styles.productRank}>
-                  <Text style={styles.productRankText}>{index + 1}</Text>
-                </View>
-                <View style={styles.productInfo}>
-                  <Text style={styles.productName}>{product.name}</Text>
-                  <Text style={styles.productStats}>
-                    {product.sales} sales • {formatPrice(product.revenue)}
-                  </Text>
-                </View>
+              <View style={styles.ordersContainer}>
+                {recentOrders.map((order, index) => (
+                  <TouchableOpacity
+                    key={order.id}
+                    style={styles.orderItem}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.orderLeft}>
+                      <Text style={styles.orderId}>{order.id}</Text>
+                      <Text style={styles.orderCustomer}>{order.customer}</Text>
+                    </View>
+                    <View style={styles.orderRight}>
+                      <Text style={styles.orderAmount}>{formatPrice(order.amount)}</Text>
+                      <View
+                        style={[
+                          styles.orderStatus,
+                          { backgroundColor: getStatusColor(order.status) + '20' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.orderStatusText,
+                            { color: getStatusColor(order.status) },
+                          ]}
+                        >
+                          {order.status}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ))}
-          </View>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  )
-}
+            </View>
+          </Animated.View>
+
+          {/* Top Products Section */}
+          <Animated.View
+            style={[
+              styles.section,
+             
+            ]}
+          >
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Top Products</Text>
+                <Text style={styles.sectionSubtitle}>Best performing products</Text>
+              </View>
+
+              <View style={styles.productsContainer}>
+                {topProducts.map((product, index) => (
+                  <TouchableOpacity
+                    key={product.name}
+                    style={styles.productItem}
+                    activeOpacity={0.7}
+                  >
+                    <LinearGradient
+                      colors={['#8b5cf6', '#a855f7']}
+                      style={styles.productRank}
+                    >
+                      <Text style={styles.productRankText}>{index + 1}</Text>
+                    </LinearGradient>
+                    <View style={styles.productInfo}>
+                      <Text style={styles.productName}>{product.name}</Text>
+                      <Text style={styles.productStats}>
+                        {product.sales} sales • {formatPrice(product.revenue)}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
   },
   header: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  headerContent: {
+    backgroundColor: '#ffffff',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#fff",
     borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
+    borderBottomColor: '#e5e7eb',
   },
   headerTitle: {
     fontSize: 28,
-    fontWeight: "bold",
-    color: "#212529",
+    fontWeight: 'bold',
+    color: '#111827',
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 16,
-    color: "#6c757d",
+    color: '#6b7280',
   },
   scrollView: {
     flex: 1,
@@ -199,190 +303,195 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   statCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
     borderLeftWidth: 4,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+    marginBottom: 12,
   },
   statCardContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   statCardLeft: {
     flex: 1,
   },
   statCardTitle: {
     fontSize: 14,
-    color: "#6c757d",
-    marginBottom: 4,
+    color: '#6b7280',
+    marginBottom: 6,
+    fontWeight: '500',
   },
   statCardValue: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#212529",
-    marginBottom: 2,
+    fontSize: 26,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
   },
   statCardSubtitle: {
     fontSize: 12,
-    color: "#28a745",
-    fontWeight: "500",
+    color: '#10b981',
+    fontWeight: '600',
   },
   statCardIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: "center",
-    alignItems: "center",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   quickStatsRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     paddingHorizontal: 16,
     marginBottom: 16,
     gap: 12,
   },
   quickStatItem: {
     flex: 1,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   quickStatIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f8f9fa",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 8,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   quickStatNumber: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#212529",
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#111827',
     marginBottom: 4,
   },
   quickStatLabel: {
     fontSize: 12,
-    color: "#6c757d",
-    textAlign: "center",
+    color: '#6b7280',
+    textAlign: 'center',
+    fontWeight: '500',
   },
   section: {
-    backgroundColor: "#fff",
     marginHorizontal: 16,
     marginBottom: 16,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 16,
+    shadowColor: '#8b5cf6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  sectionContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    overflow: 'hidden',
   },
   sectionHeader: {
-    padding: 16,
+    padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f8f9fa",
+    borderBottomColor: '#f3f4f6',
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "600",
-    color: "#212529",
+    fontWeight: '700',
+    color: '#111827',
     marginBottom: 2,
   },
   sectionSubtitle: {
     fontSize: 14,
-    color: "#6c757d",
+    color: '#6b7280',
   },
   ordersContainer: {
-    padding: 16,
+    padding: 20,
   },
   orderItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f8f9fa",
+    borderBottomColor: '#f9fafb',
   },
   orderLeft: {
     flex: 1,
   },
   orderId: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#212529",
-    marginBottom: 2,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
   },
   orderCustomer: {
     fontSize: 14,
-    color: "#6c757d",
+    color: '#6b7280',
   },
   orderRight: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
   },
   orderAmount: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#212529",
-    marginBottom: 4,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 6,
   },
   orderStatus: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
   },
   orderStatusText: {
     fontSize: 12,
-    fontWeight: "500",
+    fontWeight: '600',
   },
   productsContainer: {
-    padding: 16,
+    padding: 20,
   },
   productItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f8f9fa",
+    borderBottomColor: '#f9fafb',
   },
   productRank: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#007bff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   productRankText: {
     fontSize: 14,
-    fontWeight: "bold",
-    color: "#fff",
+    fontWeight: 'bold',
+    color: '#ffffff',
   },
   productInfo: {
     flex: 1,
   },
   productName: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#212529",
-    marginBottom: 2,
+    fontWeight: '700',
+    color: '#111827',
+    marginBottom: 4,
   },
   productStats: {
     fontSize: 14,
-    color: "#6c757d",
+    color: '#6b7280',
   },
-})
+});
 
-export default DashboardScreen
+export default DashboardScreen;

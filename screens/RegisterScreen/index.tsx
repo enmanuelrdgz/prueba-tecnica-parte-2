@@ -1,180 +1,518 @@
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Animated,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-} from "react-native"
-import { useSafeAreaInsets } from "react-native-safe-area-context"
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-const RegisterScreen = ({ navigation }: any) => {
-  const handleRegister = () => {
-    // Sin lógica - página tonta
-  }
+const RegisterScreen = ({navigation}) => {
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [focusedInput, setFocusedInput] = useState<string | null>(null);
+
+  // Animaciones
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(50)).current;
+  const fullNameScaleAnim = useRef(new Animated.Value(1)).current;
+  const emailScaleAnim = useRef(new Animated.Value(1)).current;
+  const usernameScaleAnim = useRef(new Animated.Value(1)).current;
+  const passwordScaleAnim = useRef(new Animated.Value(1)).current;
+  const confirmPasswordScaleAnim = useRef(new Animated.Value(1)).current;
+  const buttonScaleAnim = useRef(new Animated.Value(1)).current;
+  const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Animación inicial
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
+  const handleRegister = async () => {
+    setErrorMessage('');
+
+    if (!fullName.trim() || !email.trim() || !username.trim() || !password.trim() || !confirmPassword.trim()) {
+      setErrorMessage('Por favor, completa todos los campos');
+      shakeAnimation();
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Las contraseñas no coinciden');
+      shakeAnimation();
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage('La contraseña debe tener al menos 6 caracteres');
+      shakeAnimation();
+      return;
+    }
+
+    setIsLoading(true);
+    buttonPressAnimation();
+
+    // Simular llamada a API
+    setTimeout(() => {
+      console.log('Registro exitoso');
+      setIsLoading(false);
+    }, 2000);
+  };
 
   const handleGoToLogin = () => {
-    navigation.navigate("Login")
-  }
+    setErrorMessage('');
+    navigation.navigate('Login');
+  };
 
-  const { top } = useSafeAreaInsets()
+  const getScaleAnim = (inputName: string) => {
+    switch (inputName) {
+      case 'fullName':
+        return fullNameScaleAnim;
+      case 'email':
+        return emailScaleAnim;
+      case 'username':
+        return usernameScaleAnim;
+      case 'password':
+        return passwordScaleAnim;
+      case 'confirmPassword':
+        return confirmPasswordScaleAnim;
+      default:
+        return fullNameScaleAnim;
+    }
+  };
+
+  const handleInputFocus = (inputName: string) => {
+    setFocusedInput(inputName);
+    const scaleAnim = getScaleAnim(inputName);
+    
+    Animated.spring(scaleAnim, {
+      toValue: 1.05,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleInputBlur = (inputName: string) => {
+    setFocusedInput(null);
+    const scaleAnim = getScaleAnim(inputName);
+    
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const buttonPressAnimation = () => {
+    Animated.sequence([
+      Animated.timing(buttonScaleAnim, {
+        toValue: 0.95,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonScaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const shakeAnimation = () => {
+    Animated.sequence([
+      Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: -10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 10, duration: 100, useNativeDriver: true }),
+      Animated.timing(shakeAnim, { toValue: 0, duration: 100, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const getInputIcon = (inputName: string) => {
+    const iconColor = focusedInput === inputName ? '#8b5cf6' : '#9ca3af';
+    
+    switch (inputName) {
+      case 'fullName':
+        return <Ionicons name="person-circle-outline" size={20} color={iconColor} />;
+      case 'email':
+        return <Ionicons name="mail-outline" size={20} color={iconColor} />;
+      case 'username':
+        return <Ionicons name="person-outline" size={20} color={iconColor} />;
+      case 'password':
+      case 'confirmPassword':
+        return <Ionicons name="lock-closed-outline" size={20} color={iconColor} />;
+      default:
+        return <Ionicons name="person-outline" size={20} color={iconColor} />;
+    }
+  };
+
+  const renderInputField = (
+    inputName: string,
+    label: string,
+    placeholder: string,
+    value: string,
+    onChangeText: (text: string) => void,
+    secureTextEntry = false,
+    keyboardType: any = 'default',
+    autoCapitalize: any = 'none'
+  ) => {
+    const scaleAnim = getScaleAnim(inputName);
+    
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>{label}</Text>
+        <Animated.View
+          style={[
+            styles.inputWrapper,
+            {
+              transform: [{ scale: scaleAnim }],
+              shadowOpacity: focusedInput === inputName ? 0.3 : 0.1,
+            },
+          ]}
+        >
+          <View style={styles.inputIconContainer}>
+            {getInputIcon(inputName)}
+          </View>
+          <TextInput
+            style={[
+              styles.textInput,
+              {
+                borderColor: focusedInput === inputName ? '#8b5cf6' : '#e5e7eb',
+              },
+            ]}
+            placeholder={placeholder}
+            placeholderTextColor="#9ca3af"
+            value={value}
+            onChangeText={(text) => {
+              onChangeText(text);
+              if (errorMessage) setErrorMessage('');
+            }}
+            onFocus={() => handleInputFocus(inputName)}
+            onBlur={() => handleInputBlur(inputName)}
+            secureTextEntry={secureTextEntry}
+            keyboardType={keyboardType}
+            autoCapitalize={autoCapitalize}
+            autoCorrect={false}
+          />
+        </Animated.View>
+      </View>
+    );
+  };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <LinearGradient
+      colors={['#f3e8ff', '#e9d5ff', '#ddd6fe']}
+      style={styles.container}
+    >
+      <KeyboardAvoidingView
+        style={styles.keyboardContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View style={{ ...styles.header, paddingVertical: top + 16 }}>
-          <Text style={styles.headerTitle}>Crear Cuenta</Text>
-          <Text style={styles.headerSubtitle}>Completa tus datos para registrarte</Text>
-        </View>
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header */}
+          <Animated.View
+            style={[
+              styles.header,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: fadeAnim.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [-10, 0],
+                }) }],
+              },
+            ]}
+          >
+            <Text style={styles.title}>Crear Cuenta</Text>
+            <Text style={styles.subtitle}>Completa tus datos para registrarte</Text>
+          </Animated.View>
 
-        <View style={styles.form}>
-          <Text style={styles.inputLabel}>Nombre Completo</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ingresa tu nombre completo"
-            placeholderTextColor="#6c757d"
-            autoCapitalize="words"
-            autoCorrect={false}
-          />
+          {/* Form */}
+          <Animated.View
+            style={[
+              styles.formContainer,
+              {
+                opacity: fadeAnim,
+                transform: [{ translateY: slideAnim }],
+              },
+            ]}
+          >
+            {/* Full Name Input */}
+            {renderInputField(
+              'fullName',
+              'Nombre Completo',
+              'Ingresa tu nombre completo',
+              fullName,
+              setFullName,
+              false,
+              'default',
+              'words'
+            )}
 
-          <Text style={styles.inputLabel}>Correo Electrónico</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Ingresa tu correo electrónico"
-            placeholderTextColor="#6c757d"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+            {/* Email Input */}
+            {renderInputField(
+              'email',
+              'Correo Electrónico',
+              'Ingresa tu correo electrónico',
+              email,
+              setEmail,
+              false,
+              'email-address',
+              'none'
+            )}
 
-          <Text style={styles.inputLabel}>Usuario</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Elige un nombre de usuario"
-            placeholderTextColor="#6c757d"
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+            {/* Username Input */}
+            {renderInputField(
+              'username',
+              'Usuario',
+              'Elige un nombre de usuario',
+              username,
+              setUsername
+            )}
 
-          <Text style={styles.inputLabel}>Contraseña</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Crea una contraseña segura"
-            placeholderTextColor="#6c757d"
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+            {/* Password Input */}
+            {renderInputField(
+              'password',
+              'Contraseña',
+              'Crea una contraseña segura',
+              password,
+              setPassword,
+              true
+            )}
 
-          <Text style={styles.inputLabel}>Confirmar Contraseña</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="Confirma tu contraseña"
-            placeholderTextColor="#6c757d"
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
+            {/* Confirm Password Input */}
+            {renderInputField(
+              'confirmPassword',
+              'Confirmar Contraseña',
+              'Confirma tu contraseña',
+              confirmPassword,
+              setConfirmPassword,
+              true
+            )}
 
-          <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-            <Text style={styles.registerButtonText}>Crear Cuenta</Text>
-          </TouchableOpacity>
+            {/* Error Message */}
+            {errorMessage ? (
+              <Animated.View
+                style={[
+                  styles.errorContainer,
+                  { transform: [{ translateX: shakeAnim }] },
+                ]}
+              >
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </Animated.View>
+            ) : null}
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleGoToLogin}>
-            <Text style={styles.loginButtonText}>¿Ya tienes cuenta? Inicia Sesión</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  )
-}
+            {/* Register Button */}
+            <Animated.View style={{ transform: [{ scale: buttonScaleAnim }] }}>
+              <TouchableOpacity
+                style={[styles.registerButton, isLoading && styles.registerButtonDisabled]}
+                onPress={handleRegister}
+                disabled={isLoading}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#8b5cf6', '#a855f7', '#9333ea']}
+                  style={styles.registerButtonGradient}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                >
+                  {isLoading ? (
+                    <View style={styles.loadingContainer}>
+                      <ActivityIndicator color="#fff" size="small" />
+                      <Text style={styles.loadingText}>Creando cuenta...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.registerButtonText}>Crear Cuenta</Text>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Login Button */}
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleGoToLogin}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.loginButtonText}>
+                ¿Ya tienes cuenta? Inicia Sesión
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+  },
+  keyboardContainer: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 40,
   },
   header: {
-    paddingHorizontal: 20,
-    backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
+    alignItems: 'center',
+    marginBottom: 32,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#212529",
-    marginBottom: 4,
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  headerSubtitle: {
+  subtitle: {
     fontSize: 16,
-    color: "#6c757d",
+    color: '#6b7280',
+    textAlign: 'center',
   },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  form: {
-    flex: 1,
-    paddingHorizontal: 30,
-    justifyContent: "center",
-    alignItems: "center",
+  formContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 24,
+    padding: 32,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 10,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
     maxWidth: 400,
-    alignSelf: "center",
-    width: "100%",
+    width: '100%',
+    alignSelf: 'center',
+  },
+  inputContainer: {
+    marginBottom: 20,
   },
   inputLabel: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#212529",
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
     marginBottom: 8,
-    marginTop: 20,
-    alignSelf: "flex-start",
-    width: "100%",
   },
-  input: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e9ecef",
-    borderRadius: 8,
+  inputWrapper: {
+    position: 'relative',
+    shadowColor: '#8b5cf6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  inputIconContainer: {
+    position: 'absolute',
+    left: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  textInput: {
+    backgroundColor: '#ffffff',
+    borderWidth: 2,
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingLeft: 44,
+    paddingVertical: 16,
     fontSize: 16,
-    color: "#212529",
-    width: "100%",
+    color: '#111827',
+    height: 56,
+  },
+  errorContainer: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   registerButton: {
-    backgroundColor: "#28a745",
-    borderRadius: 8,
-    paddingVertical: 14,
-    marginTop: 30,
-    alignItems: "center",
-    width: "100%",
+    borderRadius: 16,
+    marginTop: 16,
+    marginBottom: 16,
+    shadowColor: '#8b5cf6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  registerButtonGradient: {
+    paddingVertical: 16,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 56,
   },
   registerButtonText: {
-    color: "#fff",
+    color: '#ffffff',
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: '600',
+  },
+  registerButtonDisabled: {
+    opacity: 0.8,
+  },
+  loadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
   },
   loginButton: {
-    marginTop: 20,
-    alignItems: "center",
-    paddingVertical: 10,
-    width: "100%",
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   loginButtonText: {
-    color: "#6c757d",
+    color: '#8b5cf6',
     fontSize: 16,
-    textDecorationLine: "underline",
+    fontWeight: '500',
   },
-})
+});
 
-export default RegisterScreen
+export default RegisterScreen;
