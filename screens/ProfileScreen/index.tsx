@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Image,
   ScrollView,
   Dimensions,
-  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,18 +19,6 @@ const { width } = Dimensions.get('window');
 const AdminProfileScreen = ({ navigation }: any) => {
   const { logout } = useAuth();
 
-  // Animaciones
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const slideAnim = useRef(new Animated.Value(30)).current;
-  const statsAnimations = useRef([
-    new Animated.Value(0),
-    new Animated.Value(0),
-    new Animated.Value(0),
-  ]).current;
-  const menuAnimations = useRef(
-    Array.from({ length: 8 }, () => new Animated.Value(0))
-  ).current;
-
   // Admin user data
   const [admin] = useState({
     name: 'Admin User',
@@ -40,43 +27,6 @@ const AdminProfileScreen = ({ navigation }: any) => {
     adminSince: '2022',
     avatar: 'https://via.placeholder.com/120/8b5cf6/FFFFFF?text=AD',
   });
-
-  useEffect(() => {
-    // Animación inicial
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-
-    // Animaciones escalonadas para stats
-    const statsDelays = [200, 300, 400];
-    statsAnimations.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 600,
-        delay: statsDelays[index],
-        useNativeDriver: true,
-      }).start();
-    });
-
-    // Animaciones escalonadas para menu items
-    menuAnimations.forEach((anim, index) => {
-      Animated.timing(anim, {
-        toValue: 1,
-        duration: 500,
-        delay: 500 + index * 100,
-        useNativeDriver: true,
-      }).start();
-    });
-  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -167,22 +117,7 @@ const AdminProfileScreen = ({ navigation }: any) => {
   ];
 
   const renderMenuItem = (item: any, index: number) => (
-    <Animated.View
-      key={item.id}
-      style={[
-        {
-          opacity: menuAnimations[index],
-          transform: [
-            {
-              translateY: menuAnimations[index].interpolate({
-                inputRange: [0, 1],
-                outputRange: [20, 0],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
+    <View key={item.id}>
       <TouchableOpacity
         style={styles.menuItem}
         onPress={item.onPress}
@@ -202,60 +137,29 @@ const AdminProfileScreen = ({ navigation }: any) => {
         </View>
         <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 
-  const StatItem = ({ number, label, animationValue }: any) => (
-    <Animated.View
-      style={[
-        styles.statItem,
-        {
-          opacity: animationValue,
-          transform: [
-            {
-              scale: animationValue.interpolate({
-                inputRange: [0, 1],
-                outputRange: [0.8, 1],
-              }),
-            },
-          ],
-        },
-      ]}
-    >
+  const StatItem = ({ number, label }: any) => (
+    <View style={styles.statItem}>
       <Text style={styles.statNumber}>{number}</Text>
       <Text style={styles.statLabel}>{label}</Text>
-    </Animated.View>
+    </View>
   );
 
   return (
     <LinearGradient colors={['#f3e8ff', '#e9d5ff', '#ddd6fe']} style={styles.container}>
       <SafeAreaView style={styles.container}>
         {/* Header */}
-        <Animated.View
-          style={[
-            styles.header,
-            {
-              opacity: fadeAnim,
-              transform: [{ translateY: slideAnim }],
-            },
-          ]}
-        >
+        <View style={styles.header}>
           <LinearGradient colors={['#ffffff', '#faf5ff']} style={styles.headerGradient}>
             <Text style={styles.headerTitle}>Admin Profile</Text>
           </LinearGradient>
-        </Animated.View>
+        </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Admin Info Section */}
-          <Animated.View
-            style={[
-              styles.userSection,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
+          <View style={styles.userSection}>
             <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.userSectionGradient}>
               <View style={styles.avatarContainer}>
                 <Image source={{ uri: admin.avatar }} style={styles.avatar} resizeMode="cover" />
@@ -276,16 +180,16 @@ const AdminProfileScreen = ({ navigation }: any) => {
                 <Text style={styles.memberSince}>Admin since {admin.adminSince}</Text>
               </View>
             </LinearGradient>
-          </Animated.View>
+          </View>
 
           {/* Admin Stats Section */}
           <View style={styles.statsSection}>
             <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.statsSectionGradient}>
-              <StatItem number="1,247" label="Total Products" animationValue={statsAnimations[0]} />
+              <StatItem number="1,247" label="Total Products" />
               <View style={styles.statDivider} />
-              <StatItem number="$45,280" label="Monthly Sales" animationValue={statsAnimations[1]} />
+              <StatItem number="$45,280" label="Monthly Sales" />
               <View style={styles.statDivider} />
-              <StatItem number="892" label="Active Users" animationValue={statsAnimations[2]} />
+              <StatItem number="892" label="Active Users" />
             </LinearGradient>
           </View>
 
