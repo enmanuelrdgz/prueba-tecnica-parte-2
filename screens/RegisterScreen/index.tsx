@@ -84,7 +84,7 @@ const RegisterScreen = ({navigation}) => {
 
   const handleGoToLogin = () => {
     setErrorMessage('');
-    console.log('Navegar a login');
+    navigation.navigate('Login');
   };
 
   const getScaleAnim = (inputName: string) => {
