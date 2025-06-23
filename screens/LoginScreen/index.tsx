@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
-const LoginScreen = () => {
+const LoginScreen = ({navigation}: any) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -75,7 +75,7 @@ const LoginScreen = () => {
 
   const handleGoToRegister = () => {
     setErrorMessage('');
-    console.log('Navegar a registro');
+    navigation.navigate('Register');
   };
 
   const handleInputFocus = (inputName: string) => {
