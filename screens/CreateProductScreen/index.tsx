@@ -24,14 +24,14 @@ const CreateProductScreen = () => {
     category: '',
     stock: '',
     sku: '',
-    imageUrl: '',
-    imageUri: '', // Nueva propiedad para la imagen local
+    imageUri: '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
 
-  const categories = [
+  // esto deberia venir de un servicio
+  const mockCategories = [
     'Electronics',
     'Clothing',
     'Home & Garden',
@@ -59,7 +59,7 @@ const CreateProductScreen = () => {
 
   // Función para solicitar permisos y abrir la galería/cámara
   const pickImage = async () => {
-    // Solicitar permisos
+
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     
     if (status !== 'granted') {
@@ -70,7 +70,6 @@ const CreateProductScreen = () => {
       return;
     }
 
-    // Mostrar opciones al usuario
     Alert.alert(
       'Seleccionar imagen',
       'Elige una opción',
@@ -111,7 +110,6 @@ const CreateProductScreen = () => {
 
     if (!result.canceled) {
       handleInputChange('imageUri', result.assets[0].uri);
-      handleInputChange('imageUrl', ''); // Limpiar URL si se selecciona imagen local
     }
   };
 
@@ -125,7 +123,6 @@ const CreateProductScreen = () => {
 
     if (!result.canceled) {
       handleInputChange('imageUri', result.assets[0].uri);
-      handleInputChange('imageUrl', ''); // Limpiar URL si se selecciona imagen local
     }
   };
 
@@ -143,7 +140,6 @@ const CreateProductScreen = () => {
           style: 'destructive',
           onPress: () => {
             handleInputChange('imageUri', '');
-            handleInputChange('imageUrl', '');
           },
         },
       ]
@@ -186,7 +182,7 @@ const CreateProductScreen = () => {
 
     setIsSubmitting(true);
 
-    // Simulate API call delay
+    // Simulamos una llamada a un servicio
     setTimeout(() => {
       setIsSubmitting(false);
 
@@ -201,7 +197,6 @@ const CreateProductScreen = () => {
               category: '',
               stock: '',
               sku: '',
-              imageUrl: '',
               imageUri: '',
             });
           },
@@ -250,7 +245,7 @@ const CreateProductScreen = () => {
     <View style={styles.categoryContainer}>
       <Text style={styles.inputLabel}>Category *</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
-        {categories.map((cat) => (
+        {mockCategories.map((cat) => (
           <TouchableOpacity
             key={cat}
             style={[styles.categoryChip, formData.category === cat && styles.categoryChipSelected]}
@@ -278,10 +273,10 @@ const CreateProductScreen = () => {
       <Text style={styles.inputLabel}>Product Image</Text>
       
       {/* Mostrar imagen seleccionada */}
-      {(formData.imageUri || formData.imageUrl) && (
+      {(formData.imageUri) && (
         <View style={styles.imagePreviewContainer}>
           <Image
-            source={{ uri: formData.imageUri || formData.imageUrl }}
+            source={{ uri: formData.imageUri }}
             style={styles.imagePreview}
             resizeMode="cover"
           />
@@ -318,6 +313,7 @@ const CreateProductScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+
       {/* Header */}
       <View style={styles.header}>
         <LinearGradient colors={['#ffffff', '#faf5ff']} style={styles.headerGradient}>
@@ -330,6 +326,7 @@ const CreateProductScreen = () => {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.form}>
             <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.formGradient}>
+              
               {/* Product Name */}
               {renderInput('name', 'Product Name *', 'Enter product name', {
                 autoCapitalize: 'words',

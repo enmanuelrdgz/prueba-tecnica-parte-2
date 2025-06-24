@@ -1,27 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   ScrollView,
-  StyleSheet,
   SafeAreaView,
-  Dimensions,
   Animated,
   TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import styles from './styles';
 
+// este componente esta completamente hardcodeado
+// no hay nada interesante aqui
 const DashboardScreen = () => {
-  const [animatedStats, setAnimatedStats] = useState({
-    totalSales: 0,
-    totalOrders: 0,
-    totalProducts: 0,
-    totalCustomers: 0,
-  });
 
-  // Mock statistics data
-  const stats = {
+  const mockStats = {
     totalSales: 45280,
     totalOrders: 1247,
     totalProducts: 156,
@@ -30,22 +24,20 @@ const DashboardScreen = () => {
     pendingOrders: 23,
     lowStockItems: 8,
     newCustomers: 34,
+    recentOrders: [
+      { id: '#3102', customer: 'Sophia Anderson', amount: 150.0, status: 'Completed' },
+      { id: '#3101', customer: 'Michael Chen', amount: 89.99, status: 'Processing' },
+      { id: '#3100', customer: 'Emma Wilson', amount: 245.5, status: 'Shipped' },
+      { id: '#3099', customer: 'James Rodriguez', amount: 67.25, status: 'Pending' },
+    ],   
+    topProducts: [
+      { name: 'Wireless Headphones', sales: 234, revenue: 20826 },
+      { name: 'Smart Watch', sales: 189, revenue: 37611 },
+      { name: 'Smartphone Pro', sales: 156, revenue: 46644 },
+      { name: 'Laptop Stand', sales: 98, revenue: 4900 },
+    ] 
   };
-
-  const recentOrders = [
-    { id: '#3102', customer: 'Sophia Anderson', amount: 150.0, status: 'Completed' },
-    { id: '#3101', customer: 'Michael Chen', amount: 89.99, status: 'Processing' },
-    { id: '#3100', customer: 'Emma Wilson', amount: 245.5, status: 'Shipped' },
-    { id: '#3099', customer: 'James Rodriguez', amount: 67.25, status: 'Pending' },
-  ];
-
-  const topProducts = [
-    { name: 'Wireless Headphones', sales: 234, revenue: 20826 },
-    { name: 'Smart Watch', sales: 189, revenue: 37611 },
-    { name: 'Smartphone Pro', sales: 156, revenue: 46644 },
-    { name: 'Laptop Stand', sales: 98, revenue: 4900 },
-  ];
-
+  
   const formatPrice = (price: number) => {
     return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   };
@@ -65,7 +57,7 @@ const DashboardScreen = () => {
     }
   };
 
-  const StatCard = ({ title, value, icon, color, subtitle }: any) => (
+  const StatCard = ({ title, value, icon, color, subtitle }) => (
     <View
       style={[
         styles.statCard,
@@ -88,13 +80,8 @@ const DashboardScreen = () => {
     </View>
   );
 
-  const QuickStatItem = ({ icon, number, label, color  }: any) => (
-    <View
-      style={[
-        styles.quickStatItem,
-       
-      ]}
-    >
+  const QuickStatItem = ({ icon, number, label, color  }) => (
+    <View style={styles.quickStatItem}>
       <LinearGradient
         colors={[color + '15', color + '05']}
         style={styles.quickStatIcon}
@@ -108,13 +95,9 @@ const DashboardScreen = () => {
 
   return (
       <SafeAreaView style={styles.container}>
-        {/* Header optimizado - sin slide animation */}
-        <View
-          style={[
-            styles.header,
-         
-          ]}
-        >
+
+        {/* Header */}
+        <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.headerTitle}>Dashboard</Text>
             <Text style={styles.headerSubtitle}>Welcome back, Admin</Text>
@@ -122,36 +105,36 @@ const DashboardScreen = () => {
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+
           {/* Main Stats Grid */}
           <View style={styles.statsGrid}>
             <StatCard
               title="Total Sales"
-              value={formatPrice(animatedStats.totalSales)}
+              value={formatPrice(mockStats.totalSales)}
               icon="trending-up"
               color="#8b5cf6"
-              subtitle={`+${stats.monthlyGrowth}% this month`}
-              index={0}
+              subtitle={`+${mockStats.monthlyGrowth}% this month`}
             />
             <StatCard
               title="Total Orders"
-              value={animatedStats.totalOrders.toLocaleString()}
+              value={mockStats.totalOrders.toLocaleString()}
               icon="receipt"
               color="#3b82f6"
-              index={1}
+              subtitle={null}
             />
             <StatCard
               title="Products"
-              value={animatedStats.totalProducts}
+              value={mockStats.totalProducts}
               icon="cube"
               color="#a855f7"
-              index={2}
+              subtitle={null}
             />
             <StatCard
               title="Customers"
-              value={animatedStats.totalCustomers.toLocaleString()}
+              value={mockStats.totalCustomers.toLocaleString()}
               icon="people"
               color="#f97316"
-              index={3}
+              subtitle={null}
             />
           </View>
 
@@ -159,31 +142,26 @@ const DashboardScreen = () => {
           <View style={styles.quickStatsRow}>
             <QuickStatItem
               icon="time"
-              number={stats.pendingOrders}
+              number={mockStats.pendingOrders}
               label="Pending Orders"
               color="#f59e0b"
             />
             <QuickStatItem
               icon="warning"
-              number={stats.lowStockItems}
+              number={mockStats.lowStockItems}
               label="Low Stock"
               color="#ef4444"
             />
             <QuickStatItem
               icon="person-add"
-              number={stats.newCustomers}
+              number={mockStats.newCustomers}
               label="New Customers"
               color="#10b981"
             />
           </View>
 
           {/* Recent Orders Section */}
-          <Animated.View
-            style={[
-              styles.section,
-             
-            ]}
-          >
+          <View style={styles.section}>
             <View style={styles.sectionContainer}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Recent Orders</Text>
@@ -191,39 +169,31 @@ const DashboardScreen = () => {
               </View>
 
               <View style={styles.ordersContainer}>
-                {recentOrders.map((order, index) => (
-                  <TouchableOpacity
-                    key={order.id}
-                    style={styles.orderItem}
-                    activeOpacity={0.7}
-                  >
-                    <View style={styles.orderLeft}>
-                      <Text style={styles.orderId}>{order.id}</Text>
-                      <Text style={styles.orderCustomer}>{order.customer}</Text>
-                    </View>
-                    <View style={styles.orderRight}>
-                      <Text style={styles.orderAmount}>{formatPrice(order.amount)}</Text>
-                      <View
-                        style={[
-                          styles.orderStatus,
-                          { backgroundColor: getStatusColor(order.status) + '20' },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.orderStatusText,
-                            { color: getStatusColor(order.status) },
-                          ]}
-                        >
-                          {order.status}
-                        </Text>
+                {
+                  mockStats.recentOrders.map((order) => (
+                    <TouchableOpacity
+                      key={order.id}
+                      style={styles.orderItem}
+                      activeOpacity={0.7}
+                    >
+                      <View style={styles.orderLeft}>
+                        <Text style={styles.orderId}>{order.id}</Text>
+                        <Text style={styles.orderCustomer}>{order.customer}</Text>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                      <View style={styles.orderRight}>
+                        <Text style={styles.orderAmount}>{formatPrice(order.amount)}</Text>
+                        <View style={[ styles.orderStatus, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                          <Text style={[styles.orderStatusText, { color: getStatusColor(order.status) }]}>
+                            {order.status}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                 ))
+                }
               </View>
             </View>
-          </Animated.View>
+          </View>
 
           {/* Top Products Section */}
           <Animated.View
@@ -239,7 +209,7 @@ const DashboardScreen = () => {
               </View>
 
               <View style={styles.productsContainer}>
-                {topProducts.map((product, index) => (
+                {mockStats.topProducts.map((product, index) => (
                   <TouchableOpacity
                     key={product.name}
                     style={styles.productItem}
@@ -266,232 +236,5 @@ const DashboardScreen = () => {
       </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  headerContent: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    fontSize: 16,
-    color: '#6b7280',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  statsGrid: {
-    padding: 16,
-    gap: 12,
-  },
-  statCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    borderLeftWidth: 4,
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-    marginBottom: 12,
-  },
-  statCardContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statCardLeft: {
-    flex: 1,
-  },
-  statCardTitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 6,
-    fontWeight: '500',
-  },
-  statCardValue: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  statCardSubtitle: {
-    fontSize: 12,
-    color: '#10b981',
-    fontWeight: '600',
-  },
-  statCardIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quickStatsRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    gap: 12,
-  },
-  quickStatItem: {
-    flex: 1,
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  quickStatIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  quickStatNumber: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  quickStatLabel: {
-    fontSize: 12,
-    color: '#6b7280',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  section: {
-    marginHorizontal: 16,
-    marginBottom: 16,
-    borderRadius: 16,
-    shadowColor: '#8b5cf6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  sectionContainer: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  sectionHeader: {
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 2,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  ordersContainer: {
-    padding: 20,
-  },
-  orderItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f9fafb',
-  },
-  orderLeft: {
-    flex: 1,
-  },
-  orderId: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  orderCustomer: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-  orderRight: {
-    alignItems: 'flex-end',
-  },
-  orderAmount: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 6,
-  },
-  orderStatus: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  orderStatusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  productsContainer: {
-    padding: 20,
-  },
-  productItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f9fafb',
-  },
-  productRank: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  productRankText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ffffff',
-  },
-  productInfo: {
-    flex: 1,
-  },
-  productName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  productStats: {
-    fontSize: 14,
-    color: '#6b7280',
-  },
-});
 
 export default DashboardScreen;

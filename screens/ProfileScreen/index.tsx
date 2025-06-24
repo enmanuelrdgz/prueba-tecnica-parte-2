@@ -8,19 +8,16 @@ import {
   Alert,
   Image,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { styles } from './styles';
 
-const { width } = Dimensions.get('window');
-
-const AdminProfileScreen = ({ navigation }: any) => {
+const AdminProfileScreen = () => {
   const { logout } = useAuth();
 
-  // Admin user data
+  // Mock user data
   const [admin] = useState({
     name: 'Admin User',
     email: 'admin@ecommerce.com',
@@ -49,8 +46,7 @@ const AdminProfileScreen = ({ navigation }: any) => {
     );
   };
 
-  // Admin menu items
-  const adminMenuItems = [
+  const menuItems = [
     {
       id: 1,
       title: 'Product Management',
@@ -117,7 +113,7 @@ const AdminProfileScreen = ({ navigation }: any) => {
     },
   ];
 
-  const renderMenuItem = (item: any, index: number) => (
+  const renderMenuItem = (item: any) => (
     <View key={item.id}>
       <TouchableOpacity
         style={styles.menuItem}
@@ -154,7 +150,7 @@ const AdminProfileScreen = ({ navigation }: any) => {
         {/* Header */}
         <View style={styles.header}>
           <LinearGradient colors={['#ffffff', '#faf5ff']} style={styles.headerGradient}>
-            <Text style={styles.headerTitle}>Admin Profile</Text>
+            <Text style={styles.headerTitle}>Profile</Text>
           </LinearGradient>
         </View>
 
@@ -197,7 +193,7 @@ const AdminProfileScreen = ({ navigation }: any) => {
           {/* Admin Menu Items Section */}
           <View style={styles.menuSection}>
             <LinearGradient colors={['#ffffff', '#fefbff']} style={styles.menuSectionGradient}>
-              {adminMenuItems.map((item, index) => renderMenuItem(item, index))}
+              {menuItems.map((item) => renderMenuItem(item))}
             </LinearGradient>
           </View>
 
